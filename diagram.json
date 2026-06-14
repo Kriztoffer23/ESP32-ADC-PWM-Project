@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "author": "Kriztoffer Hernandez",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 4.84, "attrs": {} },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 13.55,
+      "left": -220.8,
+      "attrs": { "value": "220" }
+    },
+    { "type": "wokwi-potentiometer", "id": "pot1", "top": -87.7, "left": -163.4, "attrs": {} },
+    { "type": "wokwi-photoresistor-sensor", "id": "ldr1", "top": 12.8, "left": -316, "attrs": {} },
+    {
+      "type": "wokwi-resistor",
+      "id": "r3",
+      "top": 109,
+      "left": -317.65,
+      "rotate": 270,
+      "attrs": { "value": "10000" }
+    },
+    {
+      "type": "wokwi-ntc-temperature-sensor",
+      "id": "ntc2",
+      "top": 127.4,
+      "left": -298.2,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": 85.6,
+      "left": -190.6,
+      "rotate": 270,
+      "attrs": { "color": "yellow" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r2",
+      "top": 109,
+      "left": -173.65,
+      "rotate": 270,
+      "attrs": { "value": "220" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "esp:3V3", "ldr1:VCC", "green", [ "h0" ] ],
+    [ "esp:GND.1", "ldr1:GND", "black", [ "h-14.21", "v-115.2" ] ],
+    [ "esp:32", "ldr1:DO", "green", [ "h-23.81", "v-38.4" ] ],
+    [ "r3:1", "esp:GND.1", "black", [ "v9.6", "h100.61" ] ],
+    [ "r3:2", "esp:32", "magenta", [ "h0", "v-8.4" ] ],
+    [ "ntc2:VCC", "esp:3V3", "red", [ "h57.6", "v-124.8" ] ],
+    [ "ntc2:GND", "esp:GND.1", "black", [ "h0" ] ],
+    [ "ntc2:OUT", "esp:32", "red", [ "h124.8", "v-86.5" ] ],
+    [ "led1:A", "esp:25", "green", [ "h0" ] ],
+    [ "led1:C", "esp:GND.1", "black", [ "h134.4", "v38" ] ],
+    [ "r2:1", "esp:GND.1", "black", [ "h0", "v9.6" ] ],
+    [ "pot1:VCC", "esp:3V3", "red", [ "v0", "h114.4" ] ],
+    [ "pot1:GND", "esp:GND.1", "black", [ "v0" ] ],
+    [ "pot1:SIG", "esp:32", "green", [ "v0" ] ],
+    [ "r2:2", "esp:32", "green", [ "h0" ] ]
+  ],
+  "dependencies": {}
+}
