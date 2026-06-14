@@ -1,0 +1,73 @@
+// PINS
+#define POT_PIN 34
+#define LDR_PIN 32
+#define NTC_PIN 33
+#define LED_PIN 25
+
+// PWM
+const int freq = 5000;
+const int resolution = 8;
+
+// ---------- SMOOTH FUNCTION ----------
+int readSmooth(int pin) {
+  int total = 0;
+  for (int i = 0; i < 5; i++) {
+    total += analogRead(pin);
+    delay(5);
+  }
+  return total / 5;
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  ledcAttach(LED_PIN, freq, resolution);
+}
+
+void loop() {
+
+  // ---------- A1: POTENTIOMETER ----------
+  int potValue = readSmooth(POT_PIN);
+  int potBrightness = map(potValue, 0, 4095, 0, 255);
+
+  // ---------- A2: LDR ----------
+  int ldrValue = readSmooth(LDR_PIN);
+
+  int ldrBrightness;
+  if (ldrValue < 2000) {
+    ldrBrightness = 255;   // dark → LED ON
+  } else {
+    ldrBrightness = 0;     // bright → LED OFF
+  }
+
+  // ---------- COMBINE A1 + A2 ----------
+  // (Pot overrides LDR slightly)
+  int finalBrightness = max(potBrightness, ldrBrightness);
+
+  ledcWrite(LED_PIN, finalBrightness);
+
+  // ---------- A3: NTC ----------
+  int ntcValue = readSmooth(NTC_PIN);
+
+  // Basic temperature estimate (simple version)
+  float voltage = ntcValue * (3.3 / 4095.0);
+  float temperatureC = (voltage - 0.5) * 100;  // basic approximation
+
+  // ---------- SERIAL OUTPUT ----------
+  Serial.print("POT: ");
+  Serial.print(potValue);
+
+  Serial.print(" | LDR: ");
+  Serial.print(ldrValue);
+
+  Serial.print(" | NTC: ");
+  Serial.print(ntcValue);
+
+  Serial.print(" | Temp(C): ");
+  Serial.print(temperatureC);
+
+  Serial.print(" | LED: ");
+  Serial.println(finalBrightness);
+
+  delay(500);
+}
