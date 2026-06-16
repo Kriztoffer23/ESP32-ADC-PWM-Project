@@ -1,40 +1,75 @@
-// Pins
 #define POT_PIN 34
-#define LDR_PIN 32
-#define NTC_PIN 33
-#define LED_PIN 25
+#define LDR_PIN 35
+#define NTC_PIN 32
+#define LED_PIN 16
 
 const int freq = 5000;
 const int resolution = 8;
 
+// ===== READ AVERAGE (stability) =====
+int readAvg(int pin) {
+  long sum = 0;
+  for (int i = 0; i < 10; i++) {
+    sum += analogRead(pin);
+    delay(2);
+  }
+  return sum / 10;
+}
+
+// ===== SIMPLE TEMP MAPPING (Wokwi-safe) =====
+float getTempC(int adc) {
+  float temp = map(adc, 0, 4095, 0, 100);
+  return temp;
+}
+
 void setup() {
   Serial.begin(115200);
 
-  // NEW ESP32 PWM
+  analogSetAttenuation(ADC_11db);
+
+  // NEW ESP32 PWM API
   ledcAttach(LED_PIN, freq, resolution);
 }
 
 void loop() {
 
-  int potValue = analogRead(POT_PIN);
-  int ldrValue = analogRead(LDR_PIN);
-  int ntcValue = analogRead(NTC_PIN);
+  // ================= A1: POTENTIOMETER =================
+  int pot = readAvg(POT_PIN);
+  int potBrightness = map(pot, 0, 4095, 0, 255);
 
-  int brightness = map(potValue, 0, 4095, 0, 255);
+  // ================= A2: LDR =================
+  int ldr = readAvg(LDR_PIN);
+  int ldrBrightness;
 
-  ledcWrite(LED_PIN, brightness);
+  if (ldr < 2000) {
+    ldrBrightness = 255;   // dark → ON
+  } else {
+    ldrBrightness = 0;     // bright → OFF
+  }
 
+  // combine both controls (blend behavior)
+  int finalBrightness = (potBrightness + ldrBrightness) / 2;
+  finalBrightness = constrain(finalBrightness, 0, 255);
+
+  ledcWrite(LED_PIN, finalBrightness);
+
+  // ================= A3: NTC TEMP =================
+  int ntc = readAvg(NTC_PIN);
+  float tempC = getTempC(ntc);
+
+  // ================= SERIAL OUTPUT =================
   Serial.print("Pot: ");
-  Serial.print(potValue);
+  Serial.print(pot);
 
   Serial.print(" | LDR: ");
-  Serial.print(ldrValue);
+  Serial.print(ldr);
 
-  Serial.print(" | NTC: ");
-  Serial.print(ntcValue);
+  Serial.print(" | Temp: ");
+  Serial.print(tempC);
+  Serial.print(" °C");
 
   Serial.print(" | LED: ");
-  Serial.println(brightness);
+  Serial.println(finalBrightness);
 
   delay(500);
 }
